@@ -1,0 +1,20 @@
+node_modules
+.env
+.env.example
+.env.dev
+.env.prod
+.env.local
+.openzeppelin
+bin
+coverage
+coverage.json
+typechain
+typechain-types
+
+#Hardhat files
+cache/
+artifacts/
+
+#Founder files
+foundry-out/
+cache_forge/

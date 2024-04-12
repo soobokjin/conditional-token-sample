@@ -1,0 +1,17 @@
+[profile.default]
+src = 'contracts'
+out = 'foundry-out'
+solc_version = '0.8.24'
+
+libs = ['node_modules', 'lib']
+test = 'test'
+cache_path  = 'cache_forge'
+
+# Check
+optimizer_runs = 800
+via_ir = false
+ffi = true
+fs_permissions = [{ access = "read-write", path = ".forge-snapshots/"}, { access = "read", path = "./foundry-out"}]
+
+[profile.ci]
+fuzz_runs = 100000
