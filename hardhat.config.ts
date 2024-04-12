@@ -25,8 +25,6 @@ const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || "";
 const ALCHEMY_API_KEY: string = process.env.ALCHEMY_API_KEY || "";
 const DEPLOYER_PRIVATE_KEY: string = process.env.DEPLOYER_PRIVATE_KEY || "";
 
-console.log(ALCHEMY_API_KEY, DEPLOYER_PRIVATE_KEY);
-
 const config: HardhatUserConfig = {
   networks: {
     rinkeby: {
