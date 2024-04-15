@@ -285,6 +285,7 @@ contract ConditionalTokens is ERC1155("test") {
         _burnBatch(msg.sender, positionIds, amounts);
 
         if (freeIndexSet == 0) {
+            // 이 부분 이해안됨
             if (parentCollectionId == bytes32(0)) {
                 require(
                     collateralToken.transfer(msg.sender, amount),
