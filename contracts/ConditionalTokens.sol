@@ -249,6 +249,7 @@ contract ConditionalTokens is ERC1155("test") {
 
     // A, B position 을 A|B position 으로 merge
     // 이 과정에서 A, B 의 token 을 burn 하고 A|B 에 동일한 개수를 mint
+    // CAUTION! collection 개수 2 개일 때 merge 하면 position token 사라짐 (merge 하면 안됨)
     function mergePositions(
         IERC20 collateralToken,
         bytes32 parentCollectionId,

@@ -76,14 +76,16 @@ contract ConditionalTokenTest is Test {
         );
     }
 
-    function test_mergePosition() public {
+    function test_mergePositionWhenPartitionIsTwo() public {
         // A, B -> A||B 로 merge 할 때 각 position token 개수 변동 확인
         uint256[] memory partition = new uint256[](2);
         partition[0] = 1;
         partition[1] = 2;
 
         vm.startPrank(liquidityProviderAddress);
-        collateralToken.approve(address(ctf), 10000);
+        // additional mint
+        collateralToken.mint(liquidityProviderAddress, 10000);
+        collateralToken.approve(address(ctf), 20000);
         ctf.splitPosition(
             collateralToken,
             bytes32(0),
@@ -91,8 +93,6 @@ contract ConditionalTokenTest is Test {
             partition,
             10000
         );
-        vm.stopPrank();
-
         assertEq(
             ctf.balanceOf(liquidityProviderAddress, _getPositionId(1)),
             10000
@@ -109,11 +109,13 @@ contract ConditionalTokenTest is Test {
             partition,
             10000
         );
+        vm.stopPrank();
+
         assertEq(ctf.balanceOf(liquidityProviderAddress, _getPositionId(1)), 0);
         assertEq(ctf.balanceOf(liquidityProviderAddress, _getPositionId(2)), 0);
         assertEq(
             ctf.balanceOf(liquidityProviderAddress, _getPositionId(3)),
-            10000
+            0
         );
     }
 
