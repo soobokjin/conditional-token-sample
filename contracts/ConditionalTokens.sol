@@ -290,7 +290,8 @@ contract ConditionalTokens is ERC1155("test") {
 
         if (freeIndexSet == 0) {
             if (parentCollectionId == bytes32(0)) {
-                // 이 부분 이해안됨 collateral 인 경우에는 왜 추가 transfer 를 해야하지?
+                // Q. 이 부분 이해안됨 collateral 인 경우에는 왜 추가 transfer 를 해야하지? 
+                // A. A, B -> A|B 로 merge 하면, A, B 보유자 모두에게 token 을 줘야함, 즉 2배의 담보가 필요
                 require(
                     collateralToken.transfer(msg.sender, amount),
                     "could not send collateral tokens"
