@@ -202,6 +202,7 @@ contract ConditionalTokens is ERC1155("test") {
                     "could not receive collateral tokens"
                 );
             } else {
+                // 부모 position 토큰 burn -> 자식 position token 으로 전환
                 _burn(
                     msg.sender,
                     CTHelpers.getPositionId(
@@ -246,6 +247,8 @@ contract ConditionalTokens is ERC1155("test") {
         );
     }
 
+    // A, B position 을 A|B position 으로 merge
+    // 이 과정에서 A, B 의 token 을 burn 하고 A|B 에 동일한 개수를 mint
     function mergePositions(
         IERC20 collateralToken,
         bytes32 parentCollectionId,
@@ -257,6 +260,7 @@ contract ConditionalTokens is ERC1155("test") {
         uint outcomeSlotCount = payoutNumerators[conditionId].length;
         require(outcomeSlotCount > 0, "condition not prepared yet");
 
+        // count 3 => 111 -> 8 - 1 -> 7
         uint fullIndexSet = (1 << outcomeSlotCount) - 1;
         uint freeIndexSet = fullIndexSet;
         uint[] memory positionIds = new uint[](partition.length);
@@ -285,8 +289,8 @@ contract ConditionalTokens is ERC1155("test") {
         _burnBatch(msg.sender, positionIds, amounts);
 
         if (freeIndexSet == 0) {
-            // 이 부분 이해안됨
             if (parentCollectionId == bytes32(0)) {
+                // 이 부분 이해안됨 collateral 인 경우에는 왜 추가 transfer 를 해야하지?
                 require(
                     collateralToken.transfer(msg.sender, amount),
                     "could not send collateral tokens"
