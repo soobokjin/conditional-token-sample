@@ -33,7 +33,7 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
   using SafeMath for uint8;
   using Address for address;
 
-  mapping(bytes32 => Condition) public conditions;
+  mapping(bytes32 => Condition) internal conditions;
 
   function prepareCondition(
     IERC20 collateralToken, 
@@ -45,6 +45,7 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
     ) external {
     // precondtion check
     // condition 등록
+    // position count 가 max - 1 보다 작아야 함
     Condition storage condition = conditions[getConditionId(oracle, questionId)];
 
     condition.isInitialized = true;
@@ -56,11 +57,16 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
     condition.selectedIndex = type(uint8).max;
   }
 
+  function isInitialized(bytes32 conditionId) external view returns (bool) {
+    return conditions[conditionId].isInitialized;
+  }
+
   function resolve(bytes32 conditionId, uint8 selectedIdx) external {
     Condition storage condition = conditions[conditionId];
+    // TODO: only oracle can call this method
     require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
     require(condition.selectedIndex == type(uint8).max, "SpoilerConditionalTokensV1: Already resolved");
-    require(selectedIdx < condition.positionCount - 2, "SpoilerConditionalTokensV1: Not in range");
+    require(selectedIdx < condition.positionCount - 1, "SpoilerConditionalTokensV1: Not in range");
 
     condition.selectedIndex = selectedIdx;
   }
@@ -75,7 +81,7 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
 
     IERC20(condition.collateralToken).transferFrom(msg.sender, address(this), amount);
     _mint(msg.sender, positionId, amount, "");
-    condition.positionTotalSupply[positionId].add(amount);
+    condition.positionTotalSupply[positionId] = condition.positionTotalSupply[positionId].add(amount);
   }
 
   function redeemPosition(bytes32 conditionId) external {
@@ -89,12 +95,12 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
       if (i == condition.selectedIndex) {
         continue;
       }
-      loseTotalSupply.add(condition.positionTotalSupply[getPositionId(conditionId, i)]);
+      loseTotalSupply = loseTotalSupply.add(condition.positionTotalSupply[getPositionId(conditionId, i)]);
     }
     uint256 prize = loseTotalSupply.mul(winPositonAmount).div(condition.positionTotalSupply[winPositionId]);
 
     _burn(msg.sender, winPositionId, winPositonAmount);
-    IERC20(condition.collateralToken).transfer(address(this), prize.add(winPositonAmount));
+    IERC20(condition.collateralToken).transfer(msg.sender, prize.add(winPositonAmount));
   }
 
   function getConditionId(address oracle, bytes32 questionId) public pure returns(bytes32) {
