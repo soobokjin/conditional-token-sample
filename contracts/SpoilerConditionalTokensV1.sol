@@ -5,7 +5,6 @@ import {SafeMath} from "./utils/SafeMath.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ERC1155} from "openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
-import {CTHelpers} from "./CTHelpers.sol";
 
 
 // TODO: devide collateral treasury and this logic
@@ -49,24 +48,24 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
     Condition storage condition = conditions[getConditionId(oracle, questionId)];
 
     condition.isInitialized = true;
-    condition.collateralToken = collateralToken;
+    condition.collateralToken = address(collateralToken);
     condition.oracle = oracle;
     condition.positionCount = positionCount;
     condition.startBlockNumber = startBlockNumber;
     condition.endBlockNumber = endBlockNumber;
-    condition.selectedIndex = type(uint256).max;
+    condition.selectedIndex = type(uint8).max;
   }
 
-  function resolve(bytes conditionId, uint8 selectedIdx) external {
+  function resolve(bytes32 conditionId, uint8 selectedIdx) external {
     Condition storage condition = conditions[conditionId];
     require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
-    require(condition.selectedIndex == type(uint256).max, "SpoilerConditionalTokensV1: Already resolved");
+    require(condition.selectedIndex == type(uint8).max, "SpoilerConditionalTokensV1: Already resolved");
     require(selectedIdx < condition.positionCount - 2, "SpoilerConditionalTokensV1: Not in range");
 
-    condition.selectedIndex = selectedIndex;
+    condition.selectedIndex = selectedIdx;
   }
 
-  function takePosition(bytes conditionId, uint8 positionIdx, uint256 amount) external {
+  function takePosition(bytes32 conditionId, uint8 positionIdx, uint256 amount) external {
     // transfer token to here
     // mint position token
     // check if exceed the allowed position
@@ -79,11 +78,11 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
     condition.positionTotalSupply[positionId].add(amount);
   }
 
-  function redeemPosition(bytes conditionId) external {
+  function redeemPosition(bytes32 conditionId) external {
     // redeem position by share;
-    Condition memory condition = conditions[conditionId];
+    Condition storage condition = conditions[conditionId];
 
-    uint256 winPositionId = getPositionId(condition.selectedIndex);
+    uint256 winPositionId = getPositionId(conditionId, condition.selectedIndex);
     uint256 winPositonAmount = balanceOf(msg.sender, winPositionId);
     uint256 loseTotalSupply = 0;
     for (uint8 i = 0; i < condition.positionCount; i++) {
@@ -99,10 +98,10 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
   }
 
   function getConditionId(address oracle, bytes32 questionId) public pure returns(bytes32) {
-    return keccak256(abi.encodePacked(conditionId, positionIdx));
+    return keccak256(abi.encodePacked(oracle, questionId));
   }
 
-  function getPositionId(bytes conditionId, uint8 positionIdx) public pure returns(uint256) {
+  function getPositionId(bytes32 conditionId, uint8 positionIdx) public pure returns(uint256) {
     return uint256(keccak256(abi.encodePacked(conditionId, positionIdx)));
   }
 }
