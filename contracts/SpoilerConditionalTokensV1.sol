@@ -21,20 +21,39 @@ struct Condition {
   uint256 endBlockNumber;
   // key: position id, value: total supply condition open 까지만 업데이트
   mapping(bytes32 => uint256) positionTotalSupply;
+  // default: max uint8
+  uint8 selectedIndex;
 }
 
 // TODO: setup url
 contract SpoilerConditionalTokensV1 is ERC1155("url") {
   using SafeMath for uint256;
+  using SafeMath for uint8;
   using Address for address;
 
   mapping(bytes32 => Condition) conditions;
+  
 
-  function prepareCondition(address oracle, bytes32 questionId, uint positionCount) external {
+  function prepareCondition(address oracle, bytes32 questionId, uint8 positionCount) external {
     // condition 등록, 이미 존재하면 error
   }
 
-  function reportPayouts() external {
+  function resolve(bytes conditionId, uint8 selectedIdx) external {
+  }
+
+  function takePosition(bytes conditionId, uint8 positionIdx) external {
+    
+  }
+
+  function redeem(bytes conditionId) external {
+    
+  }
+
+  function getConditionId(address oracle, bytes32 questionId) public pure returns(bytes32) {
+
+  }
+
+  function getPositionId() public pure returns(bytes32) {
 
   }
 }
