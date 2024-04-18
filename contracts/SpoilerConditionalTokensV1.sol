@@ -35,6 +35,18 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
 
   mapping(bytes32 => Condition) internal conditions;
 
+  // condition 생성
+  // take position eventlog <- user 별 포지션 정보 BE 에서 기록, 보여주기 위함
+  // user 별 총 금액, 승리 경험 등을 별도로 기록한다.
+  // user Address, fid, user betting 횟수, 승리, 진행중, 패배, 등을 기록하기 위함 (POINT)
+  // redeem 
+
+  event PrepareCondition(bytes32 conditionId, bytes32 questionId, address oracle, uint positionCount);
+  event ResolveCondition(bytes32 conditionId, address oracle, uint8 selectedIdx);
+  event TakePosition(bytes32 indexed conditionId, address indexed positionBuyer, uint8 positionIdx, uint256 amount);
+  event RedeemPosition(bytes32 indexed conditionId, address indexed positionBuyer, uint256 amount);
+
+
   function prepareCondition(
     IERC20 collateralToken, 
     address oracle, 
@@ -46,7 +58,8 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
     // precondtion check
     // condition 등록
     // position count 가 max - 1 보다 작아야 함
-    Condition storage condition = conditions[getConditionId(oracle, questionId)];
+    bytes conditionId = getConditionId(oracle, questionId);
+    Condition storage condition = conditions[conditionId];
 
     condition.isInitialized = true;
     condition.collateralToken = address(collateralToken);
@@ -55,6 +68,8 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
     condition.startBlockNumber = startBlockNumber;
     condition.endBlockNumber = endBlockNumber;
     condition.selectedIndex = type(uint8).max;
+
+    emit PrepareCondition(conditionId);
   }
 
   function isInitialized(bytes32 conditionId) external view returns (bool) {
@@ -69,6 +84,8 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
     require(selectedIdx < condition.positionCount - 1, "SpoilerConditionalTokensV1: Not in range");
 
     condition.selectedIndex = selectedIdx;
+
+    emit ResolveCondition(conditionId, condition.oracle, selectedIndex);
   }
 
   function takePosition(bytes32 conditionId, uint8 positionIdx, uint256 amount) external {
@@ -82,6 +99,8 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
     IERC20(condition.collateralToken).transferFrom(msg.sender, address(this), amount);
     _mint(msg.sender, positionId, amount, "");
     condition.positionTotalSupply[positionId] = condition.positionTotalSupply[positionId].add(amount);
+
+    emit TakePosition(conditionId, msg.sender, positionIdx, amount);
   }
 
   function redeemPosition(bytes32 conditionId) external {
@@ -101,6 +120,8 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
 
     _burn(msg.sender, winPositionId, winPositonAmount);
     IERC20(condition.collateralToken).transfer(msg.sender, prize.add(winPositonAmount));
+
+    emit RedeemPosition(conditionId, msg.sender, amount);
   }
 
   function getConditionId(address oracle, bytes32 questionId) public pure returns(bytes32) {
