@@ -85,7 +85,7 @@ contract SpoilerConditionalTokensV1 is ERC1155("url") {
 
     condition.selectedIndex = selectedIdx;
 
-    emit ResolveCondition(conditionId, condition.oracle, selectedIndex);
+    emit ResolveCondition(conditionId, condition.oracle, selectedIdx);
   }
 
   function takePosition(bytes32 conditionId, uint8 positionIdx, uint256 amount) external {
