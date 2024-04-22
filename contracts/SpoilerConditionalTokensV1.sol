@@ -39,13 +39,12 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
   uint256 maxPositionLimits;
 
 
-  constructor() {
-    ERC1155("url");
+  constructor() Ownable(msg.sender) ERC1155("url") {
 
     maxPositionLimits = type(uint256).max;
   }
 
-  function setMaxPositionLimits(uint256 limits) Ownable() external {
+  function setMaxPositionLimits(uint256 limits) onlyOwner() external {
     maxPositionLimits = limits;  
   }
 
@@ -56,12 +55,12 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     uint8 positionCount, 
     uint256 startBlockNumber,
     uint256 endBlockNumber
-    ) Ownable() external {
+    ) onlyOwner() external {
     // precondtion check
-    bytes conditionId = getConditionId(oracle, questionId);
+    bytes32 conditionId = getConditionId(oracle, questionId);
     Condition storage condition = conditions[conditionId];
 
-    require(condition.isInitialized, false, "SpoilerConditionalTokensV1: Already initialized");
+    require(condition.isInitialized == false, "SpoilerConditionalTokensV1: Already initialized");
     require(positionCount < type(uint8).max, "SpoilerConditionalTokensV1: Exceed max position count");
     require(startBlockNumber >= block.number, "SpoilerConditionalTokensV1: Invalid block number");
     require(startBlockNumber < endBlockNumber, "SpoilerConditionalTokensV1: Invalid block number");
@@ -74,7 +73,7 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     condition.endBlockNumber = endBlockNumber;
     condition.selectedIndex = type(uint8).max;
 
-    emit PrepareCondition(conditionId);
+    emit PrepareCondition(conditionId, questionId, oracle, positionCount);
   }
 
   function isInitialized(bytes32 conditionId) external view returns (bool) {
@@ -123,11 +122,12 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
       loseTotalSupply = loseTotalSupply.add(condition.positionTotalSupply[getPositionId(conditionId, i)]);
     }
     uint256 prize = loseTotalSupply.mul(winPositonAmount).div(condition.positionTotalSupply[winPositionId]);
+    uint256 redeemAmount = prize.add(winPositonAmount);
 
     _burn(msg.sender, winPositionId, winPositonAmount);
     IERC20(condition.collateralToken).transfer(msg.sender, prize.add(winPositonAmount));
 
-    emit RedeemPosition(conditionId, msg.sender, amount);
+    emit RedeemPosition(conditionId, msg.sender, redeemAmount);
   }
 
   function getConditionId(address oracle, bytes32 questionId) public pure returns(bytes32) {
