@@ -39,7 +39,7 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
   uint256 maxPositionLimits;
 
 
-  constructor() Ownable(msg.sender) ERC1155("url") {
+  constructor() Ownable(msg.sender) ERC1155("url"){
 
     maxPositionLimits = type(uint256).max;
   }
