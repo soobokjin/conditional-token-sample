@@ -9,7 +9,7 @@ import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 // TODO: devide collateral treasury and this logic
 
-// oracle, questionId 를 조합하여 condition Id 생성. (slot count 는 상관없음)
+// condition Id: oracle, questionId
 // position Id: condition Id + position index 
 struct Condition {
   bool isInitialized;
