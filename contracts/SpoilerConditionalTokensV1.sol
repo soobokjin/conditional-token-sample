@@ -16,8 +16,8 @@ struct Condition {
   address collateralToken;
   address oracle;
   uint8 positionCount;
-  uint256 startBlockNumber;
-  uint256 endBlockNumber;
+  uint256 startTimestamp;
+  uint256 endTimestamp;
   // key: position id, value: total supply condition open 까지만 업데이트
   mapping(uint256 => uint256) positionTotalSupply;
   // default: max uint8
@@ -53,8 +53,8 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     address oracle, 
     bytes32 questionId, 
     uint8 positionCount, 
-    uint256 startBlockNumber,
-    uint256 endBlockNumber
+    uint256 startTimestamp,
+    uint256 endTimestamp
     ) onlyOwner() external {
     // precondtion check
     bytes32 conditionId = getConditionId(oracle, questionId);
@@ -62,15 +62,15 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
 
     require(condition.isInitialized == false, "SpoilerConditionalTokensV1: Already initialized");
     require(positionCount < type(uint8).max, "SpoilerConditionalTokensV1: Exceed max position count");
-    require(startBlockNumber >= block.number, "SpoilerConditionalTokensV1: Invalid block number");
-    require(startBlockNumber < endBlockNumber, "SpoilerConditionalTokensV1: Invalid block number");
+    require(startTimestamp >= block.timestamp, "SpoilerConditionalTokensV1: Invalid block number");
+    require(startTimestamp < endTimestamp, "SpoilerConditionalTokensV1: Invalid block number");
 
     condition.isInitialized = true;
     condition.collateralToken = address(collateralToken);
     condition.oracle = oracle;
     condition.positionCount = positionCount;
-    condition.startBlockNumber = startBlockNumber;
-    condition.endBlockNumber = endBlockNumber;
+    condition.startTimestamp = startTimestamp;
+    condition.endTimestamp = endTimestamp;
     condition.selectedIndex = type(uint8).max;
 
     emit PrepareCondition(conditionId, questionId, oracle, positionCount);
@@ -84,7 +84,7 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     bytes32 conditionId = getConditionId(msg.sender, questionId);
     Condition storage condition = conditions[conditionId];
     require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
-    require(block.number > condition.endBlockNumber, "SpoilerConditionalTokensV1: Condition not ended");
+    require(block.timestamp > condition.endTimestamp, "SpoilerConditionalTokensV1: Condition not ended");
     require(condition.selectedIndex == type(uint8).max, "SpoilerConditionalTokensV1: Already resolved");
     require(selectedIdx <= condition.positionCount - 1, "SpoilerConditionalTokensV1: Not in range");
 
@@ -97,7 +97,7 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     Condition storage condition = conditions[conditionId];
     uint256 positionId = getPositionId(conditionId, positionIdx);
     require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
-    require(block.number >= condition.startBlockNumber && block.number <= condition.endBlockNumber, "SpoilerConditionalTokensV1: Condition not activated");
+    require(block.timestamp >= condition.startTimestamp && block.timestamp <= condition.endTimestamp, "SpoilerConditionalTokensV1: Condition not activated");
     require(balanceOf(msg.sender, positionId).add(amount) < maxPositionLimits, "SpoilerConditionalTokensV1: Exceed max position");
 
     IERC20(condition.collateralToken).transferFrom(msg.sender, address(this), amount);

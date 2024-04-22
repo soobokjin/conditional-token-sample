@@ -25,7 +25,7 @@ contract SpoilerConditionalTokensV1Test is Test {
     sct = new SpoilerConditionalTokensV1();
     collateralToken = new MockERC20();
 
-    sct.prepareCondition(collateralToken, oracleAddress, questionId, 2, 1000, 2000);
+    sct.prepareCondition(collateralToken, oracleAddress, questionId, 2, 1000, 3000);
   }
 
   // 다른 쪽에 베팅한 유저가 0 명이라도 해도 redeem 이 가능해야 함
@@ -51,6 +51,7 @@ contract SpoilerConditionalTokensV1Test is Test {
     address userA = makeAddr("userA");
     _mintAndApproveColleteral(userA, 10000);
 
+    skip(1500);
     vm.startPrank(userA);
     sct.takePosition(_getConditionId(), 0, 10000);
     vm.stopPrank();
@@ -67,6 +68,7 @@ contract SpoilerConditionalTokensV1Test is Test {
     address loseUserC = makeAddr("loseUserC");
     _mintAndApproveColleteral(loseUserC, 10000);
 
+    skip(1500);
     vm.startPrank(winUserA);
     sct.takePosition(_getConditionId(), 0, 10000);
     vm.stopPrank();
@@ -77,8 +79,9 @@ contract SpoilerConditionalTokensV1Test is Test {
     sct.takePosition(_getConditionId(), 1, 10000);
     vm.stopPrank();
 
+    skip(1500);
     vm.startPrank(oracleAddress);
-    sct.resolve(_getConditionId(), 0);
+    sct.resolve(questionId, 0);
     vm.stopPrank();
 
     vm.startPrank(winUserA);
