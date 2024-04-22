@@ -47,6 +47,28 @@ contract SpoilerConditionalTokensV1Test is Test {
     assertEq(initialized, true);
   }
 
+
+  function test_takePositionNotInitialized() public {
+    address userA = makeAddr("userA");
+    _mintAndApproveColleteral(userA, 10000);
+    bytes32 conditionId = bytes32(0);
+
+    vm.prank(userA);
+    vm.expectRevert("SpoilerConditionalTokensV1: Not initialized");
+    sct.takePosition(conditionId, 0, 10000);
+  }
+
+  function test_takePositionWhenBeforeActivated() public {
+    address userA = makeAddr("userA");
+    _mintAndApproveColleteral(userA, 10000);
+    bytes32 conditionId = _getConditionId();
+
+    vm.prank(userA);
+    vm.expectRevert("SpoilerConditionalTokensV1: Condition not activated");
+    sct.takePosition(conditionId, 0, 10000);
+  }
+
+
   function test_takePosition() public {
     address userA = makeAddr("userA");
     _mintAndApproveColleteral(userA, 10000);

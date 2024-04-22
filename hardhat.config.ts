@@ -9,17 +9,13 @@ import importToml from "import-toml";
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 
-import deployContracts from "./tasks/deploy";
-import deployContractsV2 from "./tasks/deploy-v2";
-import voteTask from "./tasks/vote";
+import deploySpolierConditionTokenV1 from "./tasks/deploy-spoiler-v1";
 
 const foundryConfig: any = importToml.sync("foundry.toml");
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 // Setup Task
-deployContracts();
-deployContractsV2();
-voteTask();
+deploySpolierConditionTokenV1();
 
 const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || "";
 const ALCHEMY_API_KEY: string = process.env.ALCHEMY_API_KEY || "";
