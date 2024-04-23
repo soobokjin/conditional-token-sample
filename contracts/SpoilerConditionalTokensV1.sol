@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import {SafeMath} from "./utils/SafeMath.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ERC1155} from "openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
 import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
+
+import {SafeMath} from "./utils/SafeMath.sol";
 
 // TODO: devide collateral treasury and this logic
 
@@ -36,16 +37,36 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
   event RedeemPosition(bytes32 indexed conditionId, address indexed positionBuyer, uint256 amount);
 
   mapping(bytes32 => Condition) internal conditions;
+  uint256 minPositionLimits;
   uint256 maxPositionLimits;
 
-
   constructor() Ownable(msg.sender) ERC1155("url"){
-
     maxPositionLimits = type(uint256).max;
+  }
+
+  function setMinPositionLimits(uint256 limits) onlyOwner() external {
+    minPositionLimits = limits;
   }
 
   function setMaxPositionLimits(uint256 limits) onlyOwner() external {
     maxPositionLimits = limits;  
+  }
+
+  function updateStartTimestamp(bytes32 conditionId, uint256 timestamp) onlyOwner() external {
+    Condition storage condition = conditions[conditionId];
+
+    require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
+    require(block.timestamp < condition.startTimestamp , "SpoilerConditionalTokensV1: Cannot change after started");
+    require(timestamp < condition.endTimestamp , "SpoilerConditionalTokensV1: Invalid timestamp");
+  }
+
+  function updateEndTimestamp(bytes32 conditionId, uint256 timestamp) onlyOwner() external {
+    Condition storage condition = conditions[conditionId];
+
+    require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
+    require(block.timestamp < condition.endTimestamp , "SpoilerConditionalTokensV1: Cannot change after ended");
+    require(timestamp > block.timestamp , "SpoilerConditionalTokensV1: Invalid timestamp");    
+    require(timestamp > condition.startTimestamp , "SpoilerConditionalTokensV1: Invalid timestamp");
   }
 
   function prepareCondition(
@@ -62,8 +83,8 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
 
     require(condition.isInitialized == false, "SpoilerConditionalTokensV1: Already initialized");
     require(positionCount < type(uint8).max, "SpoilerConditionalTokensV1: Exceed max position count");
-    require(startTimestamp >= block.timestamp, "SpoilerConditionalTokensV1: Invalid block number");
-    require(startTimestamp < endTimestamp, "SpoilerConditionalTokensV1: Invalid block number");
+    require(startTimestamp >= block.timestamp, "SpoilerConditionalTokensV1: Invalid timestamp");
+    require(startTimestamp < endTimestamp, "SpoilerConditionalTokensV1: Invalid timestamp");
 
     condition.isInitialized = true;
     condition.collateralToken = address(collateralToken);

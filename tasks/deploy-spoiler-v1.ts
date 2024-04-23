@@ -15,10 +15,14 @@ function deploySpolierConditionTokenV1() {
         gasPrice: gasPrice,
       });
       await spoilerV1.waitForDeployment();
+      const address = await spoilerV1.getAddress();
 
-      console.log(
-        `Contract deployed at address: ${await spoilerV1.getAddress()}`
-      );
+      console.log(`Contract deployed at address: ${address}`);
+
+      await hre.run("verify:verify", {
+        address: address,
+        network: hre.network.name,
+      });
     }
   );
 }
