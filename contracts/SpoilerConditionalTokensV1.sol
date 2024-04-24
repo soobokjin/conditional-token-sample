@@ -119,7 +119,9 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     uint256 positionId = getPositionId(conditionId, positionIdx);
     require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
     require(block.timestamp >= condition.startTimestamp && block.timestamp <= condition.endTimestamp, "SpoilerConditionalTokensV1: Condition not activated");
-    require(balanceOf(msg.sender, positionId).add(amount) < maxPositionLimits, "SpoilerConditionalTokensV1: Exceed max position");
+    uint256 positionAmount = balanceOf(msg.sender, positionId).add(amount);
+    require(positionAmount >= minPositionLimits, "SpoilerConditionalTokensV1: Insufficient position amount");
+    require(positionAmount <= maxPositionLimits, "SpoilerConditionalTokensV1: Exceed max position");
 
     IERC20(condition.collateralToken).transferFrom(msg.sender, address(this), amount);
     _mint(msg.sender, positionId, amount, "");
