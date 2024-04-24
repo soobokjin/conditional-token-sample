@@ -95,6 +95,8 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
     require(block.timestamp < condition.startTimestamp , "SpoilerConditionalTokensV1: Cannot change after started");
     require(timestamp < condition.endTimestamp , "SpoilerConditionalTokensV1: Invalid timestamp");
+
+    condition.startTimestamp = timestamp;
   }
 
   function updateEndTimestamp(bytes32 conditionId, uint256 timestamp) onlyOwner() external {
@@ -104,6 +106,8 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     require(block.timestamp < condition.endTimestamp , "SpoilerConditionalTokensV1: Cannot change after ended");
     require(timestamp > block.timestamp , "SpoilerConditionalTokensV1: Invalid timestamp");    
     require(timestamp > condition.startTimestamp , "SpoilerConditionalTokensV1: Invalid timestamp");
+
+    condition.endTimestamp = timestamp;
   }
 
   function prepareCondition(

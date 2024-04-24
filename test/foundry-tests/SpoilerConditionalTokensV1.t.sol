@@ -37,11 +37,11 @@ contract SpoilerConditionalTokensV1Test is Test {
     collateralToken.approve(address(sct), amount);
   }
   
-  function _getConditionId() public returns(bytes32) {
+  function _getConditionId() public view returns(bytes32) {
     return sct.getConditionId(oracleAddress, questionId);
   }
 
-  function test_prepareCondition() public {
+  function test_prepareCondition() public view {
     bool initialized = sct.isInitialized(sct.getConditionId(oracleAddress, questionId));
 
     assertEq(initialized, true);
