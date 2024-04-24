@@ -10,12 +10,16 @@ import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 
 import deploySpolierConditionTokenV1 from "./tasks/deploy-spoiler-v1";
+import deployMockErc20 from "./tasks/deploy-mocked-erc20";
+import prepareCondition from "./tasks/prepare-condition";
 
 const foundryConfig: any = importToml.sync("foundry.toml");
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 // Setup Task
+deployMockErc20();
 deploySpolierConditionTokenV1();
+prepareCondition();
 
 const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || "";
 const BASESCAN_API_KEY: string = process.env.BASESCAN_API_KEY || "";
