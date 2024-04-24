@@ -9,6 +9,10 @@ import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {SafeMath} from "./utils/SafeMath.sol";
 
 // TODO: devide collateral treasury and this logic
+/**
+TODO: get total amount by position by condition
+TODO: get get start, end timestamp by condition
+ */
 
 // condition Id: oracle, questionId
 // position Id: condition Id + position index 
@@ -31,10 +35,14 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
   using SafeMath for uint8;
   using Address for address;
 
+  /// EVENTS ///
+
   event PrepareCondition(bytes32 conditionId, bytes32 questionId, address oracle, uint positionCount);
   event ResolveCondition(bytes32 conditionId, address oracle, uint8 selectedIdx);
   event TakePosition(bytes32 indexed conditionId, address indexed positionBuyer, uint8 positionIdx, uint256 amount);
   event RedeemPosition(bytes32 indexed conditionId, address indexed positionBuyer, uint256 amount);
+
+  /// STATE VARIABLES ///
 
   mapping(bytes32 => Condition) internal conditions;
   uint256 minPositionLimits;
@@ -43,6 +51,35 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
   constructor() Ownable(msg.sender) ERC1155("url"){
     maxPositionLimits = type(uint256).max;
   }
+
+  /// VIEW FUNCTION ///
+
+
+  function getConditionId(address oracle, bytes32 questionId) public pure returns(bytes32) {
+    return keccak256(abi.encodePacked(oracle, questionId));
+  }
+
+  function getPositionId(bytes32 conditionId, uint8 positionIdx) public pure returns(uint256) {
+    return uint256(keccak256(abi.encodePacked(conditionId, positionIdx)));
+  }
+
+  function isInitialized(bytes32 conditionId) external view returns (bool) {
+    return conditions[conditionId].isInitialized;
+  }
+
+  function getTimestampsByConditionId(bytes32 conditionId) external view returns (uint256 startTimestamp, uint256 endTimestamp) {
+    startTimestamp = conditions[conditionId].startTimestamp;
+    endTimestamp = conditions[conditionId].endTimestamp;
+  }
+
+  function getPositionTotalSupply(bytes32 conditionId, uint8 positionIdx) public view returns (uint256) {
+    uint256 positionId = getPositionId(conditionId, positionIdx);
+    Condition storage condition = conditions[conditionId];
+
+    return condition.positionTotalSupply[positionId];
+  }
+
+  /// STATE MODIFY FUNCTION ///
 
   function setMinPositionLimits(uint256 limits) onlyOwner() external {
     minPositionLimits = limits;
@@ -97,10 +134,6 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     emit PrepareCondition(conditionId, questionId, oracle, positionCount);
   }
 
-  function isInitialized(bytes32 conditionId) external view returns (bool) {
-    return conditions[conditionId].isInitialized;
-  }
-
   function resolve(bytes32 questionId, uint8 selectedIdx) external {
     bytes32 conditionId = getConditionId(msg.sender, questionId);
     Condition storage condition = conditions[conditionId];
@@ -153,11 +186,4 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     emit RedeemPosition(conditionId, msg.sender, redeemAmount);
   }
 
-  function getConditionId(address oracle, bytes32 questionId) public pure returns(bytes32) {
-    return keccak256(abi.encodePacked(oracle, questionId));
-  }
-
-  function getPositionId(bytes32 conditionId, uint8 positionIdx) public pure returns(uint256) {
-    return uint256(keccak256(abi.encodePacked(conditionId, positionIdx)));
-  }
 }
