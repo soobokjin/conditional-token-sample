@@ -43,8 +43,11 @@ contract SpoilerConditionalTokensV1Test is Test {
 
   function test_prepareCondition() public view {
     bool initialized = sct.isInitialized(sct.getConditionId(oracleAddress, questionId));
+    (uint256 start, uint256 end) = sct.getTimestampsByConditionId(sct.getConditionId(oracleAddress, questionId));
 
     assertEq(initialized, true);
+    assertEq(start, 1000);
+    assertEq(end, 3000);
   }
 
 
@@ -71,15 +74,18 @@ contract SpoilerConditionalTokensV1Test is Test {
 
   function test_takePosition() public {
     address userA = makeAddr("userA");
+    bytes32 conditionId = _getConditionId();
     _mintAndApproveColleteral(userA, 10000);
 
     skip(1500);
     vm.startPrank(userA);
-    sct.takePosition(_getConditionId(), 0, 10000);
+    sct.takePosition(conditionId, 0, 10000);
     vm.stopPrank();
 
     assertEq(collateralToken.balanceOf(userA), 0);
-    assertEq(sct.balanceOf(userA, sct.getPositionId(_getConditionId(), 0)), 10000);
+    assertEq(sct.balanceOf(userA, sct.getPositionId(conditionId, 0)), 10000);
+    assertEq(sct.getPositionTotalSupply(conditionId, 0), 10000);
+    assertEq(sct.getPositionTotalSupply(conditionId, 1), 0);
   }
 
   function test_redeemPosition() public {
