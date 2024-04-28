@@ -8,10 +8,9 @@ import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 import {SafeMath} from "./utils/SafeMath.sol";
 
-// TODO: devide collateral treasury and this logic
+import {ISpoilerPoint} from "./interfaces/ISpoilerPoint.sol";
 /**
-TODO: get total amount by position by condition
-TODO: get get start, end timestamp by condition
+// TODO: devide collateral treasury and this logic
  */
 
 // condition Id: oracle, questionId
@@ -30,7 +29,7 @@ struct Condition {
 }
 
 // TODO: setup url
-contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
+contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
   using SafeMath for uint256;
   using SafeMath for uint8;
   using Address for address;
@@ -44,16 +43,21 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
 
   /// STATE VARIABLES ///
 
+  ISpoilerPoint spoilerPoint;
   mapping(bytes32 => Condition) internal conditions;
   uint256 minPositionLimits;
   uint256 maxPositionLimits;
 
-  constructor() Ownable(msg.sender) ERC1155("url"){
+  
+
+  constructor(address spoilerPoint) Ownable(msg.sender) ERC1155("url"){
+    spoilerPoint = ISpoilerPoint(spoilerPoint);
     maxPositionLimits = type(uint256).max;
+
+    spoilerPoint.approve(address(this), type(uint256).max);
   }
 
   /// VIEW FUNCTION ///
-
 
   function getConditionId(address oracle, bytes32 questionId) public pure returns(bytes32) {
     return keccak256(abi.encodePacked(oracle, questionId));
@@ -188,6 +192,11 @@ contract SpoilerConditionalTokensV1 is Ownable, ERC1155 {
     IERC20(condition.collateralToken).transfer(msg.sender, prize.add(winPositonAmount));
 
     emit RedeemPosition(conditionId, msg.sender, redeemAmount);
+  }
+
+  // 담보물은 단일로 가져가는 것이 좋을 것 같음. 아니면 담보물 별 ERC20 을 보유하고 있어야 함 (이에따라 담보물 토큰도 condition 별로 변경할 수 없도록 할 필요가 있음)
+  function redeemColleteral() {
+
   }
 
 }
