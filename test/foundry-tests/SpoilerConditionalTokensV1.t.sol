@@ -6,6 +6,7 @@ import "forge-std/console.sol";
 
 import {MockERC20} from "../../contracts/mocks/MockERC20.sol";
 import {Condition, SpoilerConditionalTokensV1} from "../../contracts/SpoilerConditionalTokensV1.sol";
+import {SpoilerPoint} from "../../contracts/SpoilerPoint.sol";
 
 contract SpoilerConditionalTokensV1Test is Test {
   address public deployerAddress;
@@ -14,6 +15,7 @@ contract SpoilerConditionalTokensV1Test is Test {
   MockERC20 public collateralToken;
 
   SpoilerConditionalTokensV1 public sct;
+  SpoilerPoint public sp;
   bytes32 public questionId = hex"1111";
 
   function setUp() public { 
@@ -22,10 +24,12 @@ contract SpoilerConditionalTokensV1Test is Test {
     oracleAddress = makeAddr("oracle");
     vm.deal(oracleAddress, 1 ether);
 
-    sct = new SpoilerConditionalTokensV1();
     collateralToken = new MockERC20();
-
+    sp = new SpoilerPoint(collateralToken);
+    sct = new SpoilerConditionalTokensV1(address(sp));
+    
     sct.prepareCondition(collateralToken, oracleAddress, questionId, 2, 1000, 3000);
+    sp.addApprovedTokenIssuer(address(sct));
   }
 
   // 다른 쪽에 베팅한 유저가 0 명이라도 해도 redeem 이 가능해야 함
@@ -83,9 +87,12 @@ contract SpoilerConditionalTokensV1Test is Test {
     vm.stopPrank();
 
     assertEq(collateralToken.balanceOf(userA), 0);
+    assertEq(collateralToken.balanceOf(address(sct)), 0);
+    assertEq(collateralToken.balanceOf(address(sp)), 10000);
     assertEq(sct.balanceOf(userA, sct.getPositionId(conditionId, 0)), 10000);
     assertEq(sct.getPositionTotalSupply(conditionId, 0), 10000);
     assertEq(sct.getPositionTotalSupply(conditionId, 1), 0);
+    assertEq(sp.balanceOf(address(sct)), 10000);
   }
 
   function test_redeemPosition() public {
@@ -122,8 +129,61 @@ contract SpoilerConditionalTokensV1Test is Test {
     sct.redeemPosition(_getConditionId());
     vm.stopPrank();
 
-    assertEq(collateralToken.balanceOf(winUserA), 15000);
-    assertEq(collateralToken.balanceOf(winUserB), 15000);
+    assertEq(collateralToken.balanceOf(winUserA), 0);
+    assertEq(collateralToken.balanceOf(winUserB), 0);
     assertEq(collateralToken.balanceOf(loseUserC), 0);
+    assertEq(collateralToken.balanceOf(address(sct)), 0);
+    assertEq(collateralToken.balanceOf(address(sp)), 30000);
+
+    assertEq(sp.balanceOf(address(sct)), 0);
+    assertEq(sp.balanceOf(winUserA), 15000);
+    assertEq(sp.balanceOf(winUserB), 15000);
+    assertEq(sp.balanceOf(loseUserC), 0);
+  }
+
+  function test_redeemColleteral() public {
+    address winUserA = makeAddr("winUserA");
+    _mintAndApproveColleteral(winUserA, 10000);
+    address loseUserC = makeAddr("loseUserC");
+    _mintAndApproveColleteral(loseUserC, 10000);
+
+    skip(1500);
+    vm.startPrank(winUserA);
+    sct.takePosition(_getConditionId(), 0, 10000);
+    vm.stopPrank();
+    vm.startPrank(loseUserC);
+    sct.takePosition(_getConditionId(), 1, 10000);
+    vm.stopPrank();
+
+    skip(1500);
+    vm.startPrank(oracleAddress);
+    sct.resolve(questionId, 0);
+    vm.stopPrank();
+
+    vm.startPrank(winUserA);
+    sct.redeemPosition(_getConditionId());
+    vm.stopPrank();
+    vm.startPrank(loseUserC);
+    sct.redeemPosition(_getConditionId());
+    vm.stopPrank();
+
+    assertEq(collateralToken.balanceOf(winUserA), 0);
+    assertEq(collateralToken.balanceOf(loseUserC), 0);
+    assertEq(collateralToken.balanceOf(address(sct)), 0);
+    assertEq(collateralToken.balanceOf(address(sp)), 20000);
+    assertEq(sp.balanceOf(address(sct)), 0);
+    assertEq(sp.balanceOf(winUserA), 20000);
+    assertEq(sp.balanceOf(loseUserC), 0);
+
+    vm.startPrank(winUserA);
+    sp.approve(address(sct), 20000);
+    sct.redeemColleteral(20000);
+    vm.stopPrank();
+
+    assertEq(collateralToken.balanceOf(winUserA), 20000);
+    assertEq(collateralToken.balanceOf(address(sct)), 0);
+    assertEq(collateralToken.balanceOf(address(sp)), 0);
+    assertEq(sp.balanceOf(address(sct)), 0);
+    assertEq(sp.balanceOf(winUserA), 0);
   }
 }
