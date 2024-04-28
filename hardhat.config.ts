@@ -9,6 +9,7 @@ import importToml from "import-toml";
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 
+import deploySpoilerPoint from "./tasks/deploy-spoiler-point";
 import deploySpolierConditionTokenV1 from "./tasks/deploy-spoiler-v1";
 import deployMockErc20 from "./tasks/deploy-mocked-erc20";
 import prepareCondition from "./tasks/prepare-condition";
@@ -18,6 +19,7 @@ dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 // Setup Task
 deployMockErc20();
+deploySpoilerPoint();
 deploySpolierConditionTokenV1();
 prepareCondition();
 
