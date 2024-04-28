@@ -47,16 +47,16 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
 
   /// STATE VARIABLES ///
 
-  ISpoilerPoint spoilerPoint;
+  ISpoilerPoint public immutable spoilerPoint;
   mapping(bytes32 => Condition) internal conditions;
-  uint256 minPositionLimits;
-  uint256 maxPositionLimits;
+  uint256 public minPositionLimits;
+  uint256 public maxPositionLimits;
 
   
 
-  constructor(address spoilerPoint) Ownable(msg.sender) ERC1155("url"){
+  constructor(address _spoilerPoint) Ownable(msg.sender) ERC1155("url"){
     // TODO: colleteral token and spoilerToken's backed token must be matched
-    spoilerPoint = ISpoilerPoint(spoilerPoint);
+    spoilerPoint = ISpoilerPoint(_spoilerPoint);
     maxPositionLimits = type(uint256).max;
 
     spoilerPoint.approve(address(spoilerPoint), type(uint256).max);
