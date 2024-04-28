@@ -1,19 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-/**
 
-only mint & burn approve user can mint whenever requested.
-
-decmial 
-
-active Redeem
-
- */
 contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
+    using SafeERC20 for IERC20;
+
     /// EVENTS ///
     event ApprovedIssuerAdded(address issuer);
     event ApprovedIssuerRemoved(address issuer);
@@ -27,7 +22,7 @@ contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
     bool public redeemActive;
 
     modifier onlyApprovedTokenIssuer() {
-      require(approvedTokenIssuer[msg.sender] == true, "SpoilerPoint: No authority");
+      require(approvedTokenIssuer[_msgSender()] == true, "SpoilerPoint: No authority");
       _;
     }
 
@@ -73,5 +68,13 @@ contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
         _burn(_from, _share);
 
         emit PointBurn(_from, _amount);
+    }
+
+    function withdrawTokens(
+        address _token,
+        address _to,
+        uint256 _amount
+    ) external onlyOwner(){
+        IERC20(_token).safeTransfer(_to, _amount);
     }
 }

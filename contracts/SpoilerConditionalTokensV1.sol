@@ -155,6 +155,9 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
     emit ResolveCondition(conditionId, condition.oracle, selectedIdx);
   }
 
+  /**
+    TODO: mint point
+   */
   function takePosition(bytes32 conditionId, uint8 positionIdx, uint256 amount) external {
     Condition storage condition = conditions[conditionId];
     uint256 positionId = getPositionId(conditionId, positionIdx);
@@ -171,6 +174,9 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
     emit TakePosition(conditionId, msg.sender, positionIdx, amount);
   }
 
+  /**
+    TODO: send minted point
+   */
   function redeemPosition(bytes32 conditionId) external {
     // redeem position by share;
     Condition storage condition = conditions[conditionId];
@@ -194,8 +200,11 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
     emit RedeemPosition(conditionId, msg.sender, redeemAmount);
   }
 
+  /**
+    TODO: redeem point to colleteral
+   */
   // 담보물은 단일로 가져가는 것이 좋을 것 같음. 아니면 담보물 별 ERC20 을 보유하고 있어야 함 (이에따라 담보물 토큰도 condition 별로 변경할 수 없도록 할 필요가 있음)
-  function redeemColleteral() {
+  function redeemColleteral(uint256 pointAmount) external {
 
   }
 
