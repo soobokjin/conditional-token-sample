@@ -13,6 +13,7 @@ import deploySpoilerPoint from "./tasks/deploy-spoiler-point";
 import deploySpolierConditionTokenV1 from "./tasks/deploy-spoiler-v1";
 import deployMockErc20 from "./tasks/deploy-mocked-erc20";
 import prepareCondition from "./tasks/prepare-condition";
+import resolveCondition from "./tasks/resolve-condition";
 
 const foundryConfig: any = importToml.sync("foundry.toml");
 dotenvConfig({ path: resolve(__dirname, "./.env") });
@@ -22,6 +23,7 @@ deployMockErc20();
 deploySpoilerPoint();
 deploySpolierConditionTokenV1();
 prepareCondition();
+resolveCondition();
 
 const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || "";
 const BASESCAN_API_KEY: string = process.env.BASESCAN_API_KEY || "";

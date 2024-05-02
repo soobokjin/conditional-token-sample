@@ -18,16 +18,22 @@ function prepareCondition() {
     .addParam<string>("collateral", "collateral token address")
     .addParam<string>("oracle", "oracle address")
     .addParam<number>("positionCnt", "position count")
-    .addParam<number>("startTimestamp", "start timestamp")
+    .addParam<number>(
+      "startTimestamp",
+      "start timestamp",
+      undefined,
+      undefined,
+      true
+    )
     .addParam<number>("endTimestamp", "end timestamp")
     .setAction(async (args, hre) => {
       const spoiler: string = args.spoiler;
       const oracle: string = args.oracle;
       const collateral: string = args.collateral;
       const positionCnt: number = args.positionCnt;
-      const startTimestamp: number = args.startTimestamp;
-      const endTimestamp: number = args.endTimestamp;
       const questionId = generateBytes32HexString();
+      let startTimestamp: number = args.startTimestamp;
+      let endTimestamp: number = args.endTimestamp;
 
       const [deployer] = await hre.ethers.getSigners();
 
@@ -39,15 +45,19 @@ function prepareCondition() {
         );
       const block = await hre.ethers.provider.getBlock("latest");
       // Extract the timestamp from the block
-      const timestamp = block?.timestamp || 0;
-      console.log(`Timestamp: ${timestamp}`);
+
+      if (!startTimestamp) {
+        startTimestamp = block?.timestamp || 0;
+        startTimestamp += 10000;
+        console.log(`Timestamp: ${startTimestamp}`);
+      }
 
       const tx = await spolierContract.prepareCondition(
         collateral,
         oracle,
         questionId,
         positionCnt,
-        timestamp + 1000,
+        startTimestamp,
         endTimestamp
       );
       const receipt = await tx.wait();
