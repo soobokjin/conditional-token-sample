@@ -7,7 +7,9 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-
+/**
+could withdraw
+ */
 contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
     using SafeERC20 for IERC20;
 

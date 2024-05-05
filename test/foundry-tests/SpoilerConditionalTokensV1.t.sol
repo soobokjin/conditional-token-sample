@@ -85,7 +85,7 @@ contract SpoilerConditionalTokensV1Test is Test {
     vm.startPrank(userA);
     sct.takePosition(conditionId, 0, 10000);
     vm.stopPrank();
-
+  
     assertEq(collateralToken.balanceOf(userA), 0);
     assertEq(collateralToken.balanceOf(address(sct)), 0);
     assertEq(collateralToken.balanceOf(address(sp)), 10000);
@@ -114,6 +114,8 @@ contract SpoilerConditionalTokensV1Test is Test {
     sct.takePosition(_getConditionId(), 1, 10000);
     vm.stopPrank();
 
+    assertEq(sct.getSelectedIdxByConditionId(_getConditionId()), 255);
+
     skip(1500);
     vm.startPrank(oracleAddress);
     sct.resolve(questionId, 0);
@@ -129,6 +131,7 @@ contract SpoilerConditionalTokensV1Test is Test {
     sct.redeemPosition(_getConditionId());
     vm.stopPrank();
 
+    assertEq(sct.getSelectedIdxByConditionId(_getConditionId()), 0);
     assertEq(collateralToken.balanceOf(winUserA), 0);
     assertEq(collateralToken.balanceOf(winUserB), 0);
     assertEq(collateralToken.balanceOf(loseUserC), 0);

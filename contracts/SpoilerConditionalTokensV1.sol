@@ -77,6 +77,10 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
     return conditions[conditionId].isInitialized;
   }
 
+  function getSelectedIdxByConditionId(bytes32 conditionId) external view returns (uint8) {
+    return conditions[conditionId].selectedIndex;
+  }
+
   function getTimestampsByConditionId(bytes32 conditionId) external view returns (uint256 startTimestamp, uint256 endTimestamp) {
     startTimestamp = conditions[conditionId].startTimestamp;
     endTimestamp = conditions[conditionId].endTimestamp;
