@@ -30,7 +30,9 @@ contract SpoilerConditionalTokensV1Test is Test {
     treasury = new SpoilerTreasury();
     sp = new SpoilerPoint(collateralToken, address(treasury));
     sct = new SpoilerConditionalTokensV1(address(sp));
-    
+
+    treasury.setwithdrawActive(true);
+    treasury.addApprovedTokenDepositor(address(sp));
     sct.prepareCondition(oracleAddress, questionId, 2, 1000, 3000);
     sp.addApprovedTokenIssuer(address(sct));
   }
@@ -91,7 +93,8 @@ contract SpoilerConditionalTokensV1Test is Test {
   
     assertEq(collateralToken.balanceOf(userA), 0);
     assertEq(collateralToken.balanceOf(address(sct)), 0);
-    assertEq(collateralToken.balanceOf(address(sp)), 10000);
+    assertEq(collateralToken.balanceOf(address(sp)), 0);
+    assertEq(collateralToken.balanceOf(address(treasury)), 10000);
     assertEq(sct.balanceOf(userA, sct.getPositionId(conditionId, 0)), 10000);
     assertEq(sct.getPositionTotalSupply(conditionId, 0), 10000);
     assertEq(sct.getPositionTotalSupply(conditionId, 1), 0);
@@ -139,7 +142,8 @@ contract SpoilerConditionalTokensV1Test is Test {
     assertEq(collateralToken.balanceOf(winUserB), 0);
     assertEq(collateralToken.balanceOf(loseUserC), 0);
     assertEq(collateralToken.balanceOf(address(sct)), 0);
-    assertEq(collateralToken.balanceOf(address(sp)), 30000);
+    assertEq(collateralToken.balanceOf(address(sp)), 0);
+    assertEq(collateralToken.balanceOf(address(treasury)), 30000);
 
     assertEq(sp.balanceOf(address(sct)), 0);
     assertEq(sp.balanceOf(winUserA), 15000);
@@ -176,7 +180,8 @@ contract SpoilerConditionalTokensV1Test is Test {
     assertEq(collateralToken.balanceOf(winUserA), 0);
     assertEq(collateralToken.balanceOf(loseUserC), 0);
     assertEq(collateralToken.balanceOf(address(sct)), 0);
-    assertEq(collateralToken.balanceOf(address(sp)), 20000);
+    assertEq(collateralToken.balanceOf(address(sp)), 0);
+    assertEq(collateralToken.balanceOf(address(treasury)), 20000);
     assertEq(sp.balanceOf(address(sct)), 0);
     assertEq(sp.balanceOf(winUserA), 20000);
     assertEq(sp.balanceOf(loseUserC), 0);
@@ -189,6 +194,7 @@ contract SpoilerConditionalTokensV1Test is Test {
     assertEq(collateralToken.balanceOf(winUserA), 20000);
     assertEq(collateralToken.balanceOf(address(sct)), 0);
     assertEq(collateralToken.balanceOf(address(sp)), 0);
+    assertEq(collateralToken.balanceOf(address(treasury)), 0);
     assertEq(sp.balanceOf(address(sct)), 0);
     assertEq(sp.balanceOf(winUserA), 0);
   }
