@@ -7,6 +7,7 @@ import "forge-std/console.sol";
 import {MockERC20} from "../../contracts/mocks/MockERC20.sol";
 import {Condition, SpoilerConditionalTokensV1} from "../../contracts/SpoilerConditionalTokensV1.sol";
 import {SpoilerPoint} from "../../contracts/SpoilerPoint.sol";
+import {SpoilerTreasury} from "../../contracts/SpoilerTreasury.sol";
 
 contract SpoilerConditionalTokensV1Test is Test {
   address public deployerAddress;
@@ -14,8 +15,9 @@ contract SpoilerConditionalTokensV1Test is Test {
 
   MockERC20 public collateralToken;
 
-  SpoilerConditionalTokensV1 public sct;
+  SpoilerTreasury public treasury;
   SpoilerPoint public sp;
+  SpoilerConditionalTokensV1 public sct;
   bytes32 public questionId = hex"1111";
 
   function setUp() public { 
@@ -25,10 +27,11 @@ contract SpoilerConditionalTokensV1Test is Test {
     vm.deal(oracleAddress, 1 ether);
 
     collateralToken = new MockERC20();
-    sp = new SpoilerPoint(collateralToken);
+    treasury = new SpoilerTreasury();
+    sp = new SpoilerPoint(collateralToken, address(treasury));
     sct = new SpoilerConditionalTokensV1(address(sp));
     
-    sct.prepareCondition(collateralToken, oracleAddress, questionId, 2, 1000, 3000);
+    sct.prepareCondition(oracleAddress, questionId, 2, 1000, 3000);
     sp.addApprovedTokenIssuer(address(sct));
   }
 

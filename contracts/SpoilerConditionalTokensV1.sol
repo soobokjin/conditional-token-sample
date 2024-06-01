@@ -10,6 +10,7 @@ import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {SafeMath} from "./utils/SafeMath.sol";
 
 import {ISpoilerPoint} from "./interfaces/ISpoilerPoint.sol";
+
 /**
 // TODO: devide collateral treasury and this logic
  */
@@ -18,7 +19,6 @@ import {ISpoilerPoint} from "./interfaces/ISpoilerPoint.sol";
 // position Id: condition Id + position index 
 struct Condition {
   bool isInitialized;
-  address collateralToken;
   address oracle;
   uint8 positionCount;
   uint256 startTimestamp;
@@ -44,22 +44,24 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
   
   event TakePosition(bytes32 indexed conditionId, address indexed positionBuyer, uint8 positionIdx, uint256 amount);
   event RedeemPosition(bytes32 indexed conditionId, address indexed positionBuyer, uint256 amount);
-  event RedeemColleteral(address indexed pointOwner, address colleteralToken, uint256 amount);
+  event RedeemColleteral(address indexed pointOwner, address collateralToken, uint256 amount);
 
   /// STATE VARIABLES ///
 
   ISpoilerPoint public immutable spoilerPoint;
+  IERC20 public immutable collateralToken;
   mapping(bytes32 => Condition) internal conditions;
   uint256 public minPositionLimits;
   uint256 public maxPositionLimits;
 
-  constructor(address _spoilerPoint, address treasury) Ownable(msg.sender) ERC1155("url"){
+  constructor(address _spoilerPoint) Ownable(msg.sender) ERC1155("url"){
     // TODO: colleteral token and spoilerToken's backed token must be matched
     spoilerPoint = ISpoilerPoint(_spoilerPoint);
+    collateralToken = IERC20(spoilerPoint.backedToken());
     maxPositionLimits = type(uint256).max;
 
     spoilerPoint.approve(address(spoilerPoint), type(uint256).max);
-    IERC20(spoilerPoint.backedToken()).approve(address(spoilerPoint), type(uint256).max);
+    collateralToken.approve(address(spoilerPoint), type(uint256).max);
   }
 
   /// VIEW FUNCTION ///
@@ -124,7 +126,6 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
   }
 
   function prepareCondition(
-    IERC20 collateralToken, 
     address oracle, 
     bytes32 questionId, 
     uint8 positionCount, 
@@ -141,7 +142,6 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
     require(startTimestamp < endTimestamp, "SpoilerConditionalTokensV1: Invalid timestamp");
 
     condition.isInitialized = true;
-    condition.collateralToken = address(collateralToken);
     condition.oracle = oracle;
     condition.positionCount = positionCount;
     condition.startTimestamp = startTimestamp;
@@ -173,7 +173,7 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
     require(positionAmount >= minPositionLimits, "SpoilerConditionalTokensV1: Insufficient position amount");
     require(positionAmount <= maxPositionLimits, "SpoilerConditionalTokensV1: Exceed max position");
 
-    IERC20(condition.collateralToken).transferFrom(msg.sender, address(this), amount);
+    IERC20(collateralToken).transferFrom(msg.sender, address(this), amount);
     spoilerPoint.issuePointTo(address(this), amount);
     _mint(msg.sender, positionId, amount, "");
     condition.positionTotalSupply[positionId] = condition.positionTotalSupply[positionId].add(amount);
@@ -207,9 +207,9 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
   function redeemColleteral(uint256 pointAmount) external {
     spoilerPoint.transferFrom(msg.sender, address(this), pointAmount);
     spoilerPoint.burnPointFrom(address(this), pointAmount);
-    IERC20(spoilerPoint.backedToken()).safeTransfer(msg.sender, pointAmount);
+    collateralToken.safeTransfer(msg.sender, pointAmount);
 
-    emit RedeemColleteral(msg.sender, address(spoilerPoint.backedToken()), pointAmount);
+    emit RedeemColleteral(msg.sender, address(collateralToken), pointAmount);
   }
 
 }

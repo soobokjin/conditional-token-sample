@@ -7,10 +7,9 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-/**
-could withdraw
+import {ISpoilerTreasury} from "./interfaces/ISpoilerTreasury.sol";
 
- */
+
 contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
     using SafeERC20 for IERC20;
 
@@ -23,6 +22,8 @@ contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
     /// STATE VARIABLE ///
 
     IERC20Metadata public backedToken;
+    ISpoilerTreasury public immutable treasury;
+
     mapping(address => bool) public  approvedTokenIssuer;
 
     modifier onlyApprovedTokenIssuer() {
@@ -30,8 +31,11 @@ contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
       _;
     }
 
-    constructor(IERC20Metadata _backedToken) Ownable(msg.sender) {
+    constructor(IERC20Metadata _backedToken, address _treasury) Ownable(msg.sender) {
       backedToken = _backedToken;
+      treasury = ISpoilerTreasury(_treasury);
+
+      IERC20(_backedToken).approve(_treasury, type(uint256).max);
     }
 
     function decimals() public view override returns (uint8) {
@@ -51,6 +55,7 @@ contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
 
     function issuePointTo(address _to, uint256 _amount) public onlyApprovedTokenIssuer {
         backedToken.transferFrom(_to, address(this), _amount);
+        treasury.depositToken(address(backedToken), _amount);
 
         _mint(_to, _amount);
 
@@ -58,9 +63,9 @@ contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
     }
 
     function burnPointFrom(address _from, uint256 _amount) public onlyApprovedTokenIssuer {
-        backedToken.transfer(_from, _amount);
-        
         _burn(_from, _amount);
+
+        treasury.withdrawToken(address(backedToken), _from, _amount);
 
         emit PointBurn(_from, _amount);
     }
