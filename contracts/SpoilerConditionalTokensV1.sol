@@ -46,18 +46,26 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
 
   ISpoilerPoint public immutable spoilerPoint;
   IERC20 public immutable collateralToken;
-  mapping(bytes32 => Condition) internal conditions;
+  mapping(address => bool) public conditionManager;
   uint256 public minPositionLimits;
   uint256 public maxPositionLimits;
 
+  mapping(bytes32 => Condition) internal conditions;
+  
   constructor(address _spoilerPoint) Ownable(msg.sender) ERC1155("url"){
     // TODO: colleteral token and spoilerToken's backed token must be matched
     spoilerPoint = ISpoilerPoint(_spoilerPoint);
     collateralToken = IERC20(spoilerPoint.backedToken());
     maxPositionLimits = type(uint256).max;
 
+    conditionManager[msg.sender] = true;
     spoilerPoint.approve(address(spoilerPoint), type(uint256).max);
     collateralToken.approve(address(spoilerPoint), type(uint256).max);
+  }
+
+  modifier onlyConditionManager() {
+    require(conditionManager[msg.sender] == true, "SpoilerConditionalTokensV1: No authority");
+    _;
   }
 
   /// VIEW FUNCTION ///
@@ -92,15 +100,19 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
 
   /// STATE MODIFY FUNCTION ///
 
-  function setMinPositionLimits(uint256 limits) onlyOwner() external {
+  function updateConditionManager(address manager, bool isManager) onlyOwner() external {
+    conditionManager[manager] = isManager;
+  }
+
+  function setMinPositionLimits(uint256 limits) onlyConditionManager() external {
     minPositionLimits = limits;
   }
 
-  function setMaxPositionLimits(uint256 limits) onlyOwner() external {
+  function setMaxPositionLimits(uint256 limits) onlyConditionManager() external {
     maxPositionLimits = limits;  
   }
 
-  function updateStartTimestamp(bytes32 conditionId, uint256 timestamp) onlyOwner() external {
+  function updateStartTimestamp(bytes32 conditionId, uint256 timestamp) onlyConditionManager() external {
     Condition storage condition = conditions[conditionId];
 
     require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
@@ -110,7 +122,7 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
     condition.startTimestamp = timestamp;
   }
 
-  function updateEndTimestamp(bytes32 conditionId, uint256 timestamp) onlyOwner() external {
+  function updateEndTimestamp(bytes32 conditionId, uint256 timestamp) onlyConditionManager() external {
     Condition storage condition = conditions[conditionId];
 
     require(condition.isInitialized == true, "SpoilerConditionalTokensV1: Not initialized");
@@ -127,7 +139,7 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
     uint8 positionCount, 
     uint256 startTimestamp,
     uint256 endTimestamp
-    ) onlyOwner() external {
+    ) onlyConditionManager() external {
     // precondtion check
     bytes32 conditionId = getConditionId(oracle, questionId);
     Condition storage condition = conditions[conditionId];

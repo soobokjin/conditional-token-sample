@@ -36,7 +36,7 @@ function deploySpoilerPoint() {
 
       await hre.run("verify:verify", {
         address: address,
-        constructorArguments: [collateral],
+        constructorArguments: [collateral, treasury],
         network: hre.network.name,
       });
     });
