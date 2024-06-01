@@ -15,7 +15,6 @@ function generateBytes32HexString(): string {
 function prepareCondition() {
   task("prepare-condition", "(custom task) prepare condition")
     .addPositionalParam<string>("spoiler", "spoiler address")
-    .addParam<string>("collateral", "collateral token address")
     .addParam<string>("oracle", "oracle address")
     .addParam<number>("positionCnt", "position count")
     .addParam<number>(
@@ -29,7 +28,6 @@ function prepareCondition() {
     .setAction(async (args, hre) => {
       const spoiler: string = args.spoiler;
       const oracle: string = args.oracle;
-      const collateral: string = args.collateral;
       const positionCnt: number = args.positionCnt;
       const questionId = generateBytes32HexString();
       let startTimestamp: number = args.startTimestamp;
@@ -53,7 +51,6 @@ function prepareCondition() {
       }
 
       const tx = await spolierContract.prepareCondition(
-        collateral,
         oracle,
         questionId,
         positionCnt,

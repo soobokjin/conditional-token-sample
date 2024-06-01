@@ -14,12 +14,14 @@ import deploySpolierConditionTokenV1 from "./tasks/deploy-spoiler-v1";
 import deployMockErc20 from "./tasks/deploy-mocked-erc20";
 import prepareCondition from "./tasks/prepare-condition";
 import resolveCondition from "./tasks/resolve-condition";
+import deployTreasury from "./tasks/deploy-treasury";
 
 const foundryConfig: any = importToml.sync("foundry.toml");
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 // Setup Task
 deployMockErc20();
+deployTreasury();
 deploySpoilerPoint();
 deploySpolierConditionTokenV1();
 prepareCondition();

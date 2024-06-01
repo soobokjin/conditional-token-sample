@@ -11,10 +11,6 @@ import {SafeMath} from "./utils/SafeMath.sol";
 
 import {ISpoilerPoint} from "./interfaces/ISpoilerPoint.sol";
 
-/**
-// TODO: devide collateral treasury and this logic
- */
-
 // condition Id: oracle, questionId
 // position Id: condition Id + position index 
 struct Condition {
