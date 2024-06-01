@@ -9,6 +9,7 @@ import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 /**
 could withdraw
+
  */
 contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
     using SafeERC20 for IERC20;
@@ -23,15 +24,9 @@ contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
 
     IERC20Metadata public backedToken;
     mapping(address => bool) public  approvedTokenIssuer;
-    bool public redeemActive;
 
     modifier onlyApprovedTokenIssuer() {
       require(approvedTokenIssuer[_msgSender()] == true, "SpoilerPoint: No authority");
-      _;
-    }
-
-    modifier redeemActivated() {
-      require(redeemActive == true, "SpoilerPoint: Redeem is not activated");
       _;
     }
 
@@ -41,10 +36,6 @@ contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
 
     function decimals() public view override returns (uint8) {
         return backedToken.decimals();
-    }
-
-    function setRedeemActive(bool _activate) external onlyOwner {
-        redeemActive = _activate;
     }
     
     function addApprovedTokenIssuer(address _issuer) external onlyOwner {

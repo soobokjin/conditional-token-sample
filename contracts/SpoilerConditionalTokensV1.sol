@@ -41,6 +41,7 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
 
   event PrepareCondition(bytes32 conditionId, bytes32 questionId, address oracle, uint positionCount);
   event ResolveCondition(bytes32 conditionId, address oracle, uint8 selectedIdx);
+  
   event TakePosition(bytes32 indexed conditionId, address indexed positionBuyer, uint8 positionIdx, uint256 amount);
   event RedeemPosition(bytes32 indexed conditionId, address indexed positionBuyer, uint256 amount);
   event RedeemColleteral(address indexed pointOwner, address colleteralToken, uint256 amount);
@@ -52,9 +53,7 @@ contract SpoilerConditionalTokensV1 is ERC1155, Ownable {
   uint256 public minPositionLimits;
   uint256 public maxPositionLimits;
 
-  
-
-  constructor(address _spoilerPoint) Ownable(msg.sender) ERC1155("url"){
+  constructor(address _spoilerPoint, address treasury) Ownable(msg.sender) ERC1155("url"){
     // TODO: colleteral token and spoilerToken's backed token must be matched
     spoilerPoint = ISpoilerPoint(_spoilerPoint);
     maxPositionLimits = type(uint256).max;
