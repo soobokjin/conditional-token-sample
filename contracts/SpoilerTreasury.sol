@@ -6,7 +6,10 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 
-
+/**
+    owner 는 자산 이동 모두 가능    
+    그 외에는 spoiler point 만 deposit, withdraw 가능
+*/
 contract SpoilerTreasury is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 

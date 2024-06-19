@@ -11,6 +11,15 @@ import {SafeMath} from "./utils/SafeMath.sol";
 
 import {ISpoilerPoint} from "./interfaces/ISpoilerPoint.sol";
 
+/**
+  point 발행 - position 개수 간의 depegging 이 일어날 수 있는 지?
+
+  take, redeem 쪽 (졌는데 돈을 받는다는 지)
+
+  oracle 아무나 할수있나?
+
+  TODO: 한글 제거  
+*/
 // condition Id: oracle, questionId
 // position Id: condition Id + position index 
 struct Condition {

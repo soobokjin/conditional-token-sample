@@ -10,6 +10,12 @@ import {Ownable}  from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {ISpoilerTreasury} from "./interfaces/ISpoilerTreasury.sol";
 
 
+/**
+token v1 만 발행가능
+re enterancy attack 가능한지?
+backed token 과 pegging 이 깨지는 케이스가 있는지?
+spoiler point 유저가 무한발행? (한무)
+*/
 contract SpoilerPoint is ERC20("Spoiler Point", "SP"), Ownable {
     using SafeERC20 for IERC20;
 
